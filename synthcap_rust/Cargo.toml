@@ -1,0 +1,11 @@
+[package]
+name = "synthcap_rust"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "synthcap_x64"
+crate-type = ["cdylib"]
+
+[dependencies]
+arma-rs = "1.10"
