@@ -303,7 +303,6 @@ call SC_fnc_destroyCamera;
 
 
 diag_log "SynthCap: complete.";
-diag_log "Next: python tools/parse_rpt.py, then tools/visualize.py — see README.";
 
 endMission "END1";
 

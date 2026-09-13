@@ -2,9 +2,8 @@
 """
 SynthCap orchestrator — batch-runs Arma 3 across a list of worlds.
 
-Two modes:
-  autotest  one Arma process cycles every world via -autotest= (fast: one startup)
-  perrun    one Arma process per world via -init=playMission (robust: clean state)
+Modes:
+  perrun    one Arma process per world via -init=playMission
 
 Responsibilities:
   * generate  <arma>/Missions/synthcap.<world>/  per world (sqm + scripts + params)
@@ -564,20 +563,6 @@ def build_mission(world: str, cfg: RunConfig) -> Path:
     return dest
 
 
-def write_autotest_cfg(worlds: list[str], path: Path) -> Path:
-    lines = ["class TestMissions", "{"]
-    for i, w in enumerate(worlds):
-        lines += [
-            f"\tclass Case{i:02d}",
-            "\t{",
-            '\t\tcampaign="";',
-            f'\t\tmission="Missions\\synthcap.{w}";',
-            "\t};",
-        ]
-    lines += ["};", ""]
-    path.write_text("\n".join(lines), encoding="utf-8")
-    return path
-
 
 # ---------------------------------------------------------------------------
 # screenshot sweeper
@@ -718,46 +703,6 @@ def run_perrun(worlds: list[str], runs: int) -> None:
             print(f"[{world}] {status} — {sweeper.moved} frames in "
                   f"{dt/60:.1f} min ({rate:.0f}/h)")
 
-
-def run_autotest(worlds: list[str], runs: int) -> None:
-    for r in range(runs):
-        cfg = None
-        for world in worlds:
-            seed = run_seed(world, r)
-            cfg = RunConfig(world=world, seed=seed)
-            build_mission(world, RunConfig(world=world, seed=seed))
-
-
-        if cfg is None:
-            print("no worlds given, nothing to do")
-            return
-        
-        # every world in the batch shares one process, so one resolution
-        write_arma3_cfg(cfg)
-
-
-        cfg_path = ARMA_DIR / "synthcap_autotest.cfg"
-        write_autotest_cfg(worlds, cfg_path)
-
-        dest = OUT_DIR / "images" / f"batch{r}"
-        sweeper = Sweeper(PROFILE_DIR, dest)
-        sweeper.start()
-
-        args = base_args() + [f"-autotest={cfg_path}"]
-        print(f"[batch {r+1}/{runs}] {len(worlds)} worlds -> {dest}")
-        t0 = time.monotonic()
-
-        purge_screenshots(PROFILE_DIR)
-        proc = subprocess.Popen(args)
-        status = wait_for_run(proc, sweeper, "batch",
-                              RUN_TIMEOUT_S * len(worlds))
-
-        sweeper.stop_flag.set()
-        sweeper.join(timeout=10)
-        dt = time.monotonic() - t0
-        rate = sweeper.moved / dt * 3600 if dt else 0
-        print(f"[batch] {status} — {sweeper.moved} frames in "
-              f"{dt/60:.1f} min ({rate:.0f}/h)")
 
 
 DUMP_VEH_SQF = r"""
@@ -1005,7 +950,7 @@ def dump_vehicles(per_cat: int = 40) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--mode",
-                    choices=["autotest", "perrun", "collate", "dump-worlds", "dump-vehicles"],
+                    choices=[ "perrun", "collate", "dump-worlds", "dump-vehicles"],
                     default="perrun")
     ap.add_argument("--worlds", nargs="*", default=None,
                     help="world class names and/or set names "
@@ -1045,10 +990,11 @@ def main() -> int:
         return 1
 
     t0 = time.monotonic()
-    if args.mode == "autotest":
-        run_autotest(worlds, args.runs)
-    else:
+    if args.mode == "run_perrun":
         run_perrun(worlds, args.runs)
+    else:
+        print("Invalid mode seleced")
+        return 0
     print(f"\ntotal wall clock: {(time.monotonic()-t0)/60:.1f} min")
 
     collate(OUT_DIR)

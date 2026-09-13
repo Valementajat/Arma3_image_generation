@@ -8,11 +8,7 @@ SC_masterSeed = 1337;
 
 // --- Image geometry ------------------------------------------------------
 // CRITICAL: these MUST equal the true pixel size of the PNGs `screenshot`
-// produces, i.e. (window resolution) x (sampling %). If you run the game at
-// 1920x1080 with 100% sampling, this is 1920x1080. With 200% sampling it is
-// 3840x2160. The offline visualizer cross-checks this against the real PNG
-// header and will yell at you if it disagrees. Getting this wrong scales
-// every box by a constant factor.
+
 SC_imgW = 1280;
 SC_imgH = 720;
 
