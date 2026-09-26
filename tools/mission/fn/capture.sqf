@@ -8,24 +8,6 @@
 // velocities zeroed) for the entire label+screenshot window; with nothing
 // moving, every frame in the window is identical and sync is trivially exact.
 //
-// LABEL EXPORT: diag_log to the RPT file, parsed by tools/parse_rpt.py.
-//  * One line PER OBJECT, never one blob per scene: diag_log truncates lines
-//    at ~1000 chars.
-//  * `diag_log text _s` (not `diag_log _s`): logging a raw STRING wraps it in
-//    quotes and escapes embedded quotes; the Text type is written verbatim.
-//  * Pipe-separated, sentinel-prefixed ("SYNTHCAP|") — trivial and unambiguous
-//    to grep out of the RPT noise.
-//  * Requires logging enabled: do NOT run the game with -noLogs.
-//
-// SCREENSHOT GOTCHAS (from the Biki, all bite silently):
-//  * Saves into <profile dir>\Screenshots — folder capped at 250 MB by
-//    default; raise the cap in the profile file AND have the orchestrator
-//    sweep files out continuously (stage 3).
-//  * Silently fails if -profiles points elsewhere, or HDR quality is too low.
-//  * Sampling % multiplies output resolution — SC_imgW/H must match reality.
-// SQF cannot check that the PNG actually appeared (no directory reads) — the
-// watchdog for that lives in the orchestrator / visualizer.
-// ============================================================================
 
 // ----------------------------------------------------------------------------
 // _obj call SC_fnc_category  -> coarse class label string
